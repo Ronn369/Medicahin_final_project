@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MedChain — Privacy-Centric Healthcare</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy: #0a1628;
+      --navy-mid: #0f2040;
+      --navy-light: #1a3356;
+      --teal: #00c2a8;
+      --teal-dim: #00a08a;
+      --teal-glow: rgba(0,194,168,0.15);
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --green: #10b981;
+      --white: #f0f4f8;
+      --white-dim: rgba(240,244,248,0.7);
+      --white-faint: rgba(240,244,248,0.1);
+      --card: rgba(15,32,64,0.8);
+      --border: rgba(0,194,168,0.2);
+      --font-display: 'DM Serif Display', serif;
+      --font-body: 'DM Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --radius: 12px;
+      --transition: 0.25s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--navy);
+      color: var(--white);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ===== BACKGROUND ===== */
+    .bg-mesh {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(0,194,168,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 80% 80%, rgba(0,100,200,0.07) 0%, transparent 60%),
+        linear-gradient(180deg, #0a1628 0%, #060e1c 100%);
+      pointer-events: none;
+    }
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background-image:
+        linear-gradient(rgba(0,194,168,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,194,168,0.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+    }
+
+    /* ===== LAYOUT ===== */
+    #app { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* ===== NAV ===== */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 48px;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      background: rgba(10,22,40,0.7);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      color: var(--white);
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+    .logo-dot { width: 10px; height: 10px; background: var(--teal); border-radius: 50%; animation: pulse-dot 2s infinite; }
+    @keyframes pulse-dot {
+      0%,100% { box-shadow: 0 0 0 0 rgba(0,194,168,0.6); }
+      50% { box-shadow: 0 0 0 6px rgba(0,194,168,0); }
+    }
+    .nav-links { display: flex; gap: 8px; }
+    .nav-btn {
+      background: none;
+      border: none;
+      color: var(--white-dim);
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: var(--transition);
+      letter-spacing: 0.2px;
+    }
+    .nav-btn:hover, .nav-btn.active {
+      color: var(--teal);
+      background: var(--teal-glow);
+    }
+    .nav-btn.active { color: var(--teal); }
+
+    /* ===== PAGES ===== */
+    .page { display: none; flex: 1; animation: fadeIn 0.4s ease; }
+    .page.active { display: flex; flex-direction: column; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== SHARED COMPONENTS ===== */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      backdrop-filter: blur(8px);
+      transition: var(--transition);
+    }
+    .card:hover { border-color: rgba(0,194,168,0.4); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: 0.9rem;
+      cursor: pointer;
+      border: none;
+      transition: var(--transition);
+      letter-spacing: 0.2px;
+    }
+    .btn-primary { background: var(--teal); color: var(--navy); }
+    .btn-primary:hover { background: var(--teal-dim); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(0,194,168,0.3); }
+    .btn-outline { background: transparent; color: var(--teal); border: 1px solid var(--teal); }
+    .btn-outline:hover { background: var(--teal-glow); }
+    .btn-danger { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+    .btn-danger:hover { background: rgba(239,68,68,0.25); }
+    .btn-sm { padding: 6px 14px; font-size: 0.82rem; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+    .badge-green { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+    .badge-amber { background: rgba(245,158,11,0.15); color: var(--amber); border: 1px solid rgba(245,158,11,0.3); }
+    .badge-teal { background: var(--teal-glow); color: var(--teal); border: 1px solid var(--border); }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      margin-bottom: 4px;
+      line-height: 1.2;
+    }
+    .section-sub {
+      color: var(--white-dim);
+      font-size: 0.9rem;
+      margin-bottom: 28px;
+    }
+
+    .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+    .form-label { font-size: 0.82rem; font-weight: 500; color: var(--white-dim); letter-spacing: 0.5px; text-transform: uppercase; }
+    .form-input {
+      background: var(--white-faint);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--white);
+      font-family: var(--font-body);
+      font-size: 0.92rem;
+      padding: 11px 14px;
+      outline: none;
+      transition: var(--transition);
+    }
+    .form-input:focus { border-color: var(--teal); background: rgba(0,194,168,0.05); }
+    .form-input::placeholder { color: rgba(240,244,248,0.3); }
+
+    /* ===== DASHBOARD ===== */
+    .dashboard-container { padding: 40px 48px; max-width: 1400px; margin: 0 auto; width: 100%; }
+    .dashboard-hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+    .hero-main {
+      background: linear-gradient(135deg, var(--navy-mid) 0%, rgba(0,194,168,0.1) 100%);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-main::before {
+      content: '';
+      position: absolute;
+      right: -40px; top: -40px;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(0,194,168,0.15) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .hero-main h1 { font-family: var(--font-display); font-size: 2.2rem; line-height: 1.2; margin-bottom: 12px; }
+    .hero-main h1 span { color: var(--teal); font-style: italic; }
+    .hero-main p { color: var(--white-dim); font-size: 0.95rem; line-height: 1.6; margin-bottom: 24px; max-width: 420px; }
+    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .stat-card {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .stat-icon { font-size: 1.4rem; }
+    .stat-val { font-family: var(--font-display); font-size: 2rem; color: var(--teal); }
+    .stat-label { font-size: 0.82rem; color: var(--white-dim); letter-spacing: 0.3px; }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+    }
+
+    .table-wrap { padding: 24px; }
+    .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .table-title { font-family: var(--font-display); font-size: 1.1rem; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; font-size: 0.75rem; font-weight: 600; color: var(--white-dim); letter-spacing: 0.8px; text-transform: uppercase; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+    td { padding: 12px; font-size: 0.88rem; border-bottom: 1px solid rgba(0,194,168,0.05); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--white-faint); }
+
+    .activity-list { padding: 24px; }
+    .activity-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid rgba(0,194,168,0.06); }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+    .activity-dot.green { background: var(--green); }
+    .activity-dot.teal { background: var(--teal); }
+    .activity-dot.amber { background: var(--amber); }
+    .activity-text { font-size: 0.85rem; line-height: 1.5; }
+    .activity-time { font-size: 0.75rem; color: var(--white-dim); font-family: var(--font-mono); }
+
+    /* ===== AUTH PAGES ===== */
+    .auth-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      padding: 40px;
+      gap: 60px;
+    }
+    .auth-visual {
+      flex: 1;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .auth-visual h2 { font-family: var(--font-display); font-size: 2.4rem; line-height: 1.2; }
+    .auth-visual h2 em { color: var(--teal); font-style: italic; }
+    .auth-visual p { color: var(--white-dim); line-height: 1.7; font-size: 0.95rem; }
+    .auth-features { display: flex; flex-direction: column; gap: 14px; margin-top: 8px; }
+    .auth-feature { display: flex; align-items: center; gap: 12px; font-size: 0.88rem; color: var(--white-dim); }
+    .auth-feature-icon { width: 32px; height: 32px; background: var(--teal-glow); border: 1px solid var(--border); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+    .auth-form-card { padding: 36px; width: 100%; max-width: 420px; }
+    .auth-tabs { display: flex; gap: 0; margin-bottom: 28px; background: var(--white-faint); border-radius: 8px; padding: 4px; }
+    .auth-tab {
+      flex: 1;
+      padding: 8px;
+      text-align: center;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: var(--transition);
+      color: var(--white-dim);
+    }
+    .auth-tab.active { background: var(--teal); color: var(--navy); font-weight: 600; }
+
+    .toggle-form { text-align: center; margin-top: 16px; font-size: 0.85rem; color: var(--white-dim); }
+    .toggle-form a { color: var(--teal); cursor: pointer; text-decoration: underline; }
+
+    /* ===== PATIENT DASHBOARD (after login) ===== */
+    .patient-dashboard { padding: 40px 48px; max-width: 1200px; margin: 0 auto; width: 100%; }
+    .welcome-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+      padding: 20px 28px;
+    }
+    .welcome-name { font-family: var(--font-display); font-size: 1.4rem; }
+    .welcome-sub { font-size: 0.85rem; color: var(--white-dim); margin-top: 2px; }
+
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 48px;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+      background: rgba(0,194,168,0.02);
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: var(--teal);
+      background: var(--teal-glow);
+    }
+    .upload-icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .upload-title { font-size: 1rem; font-weight: 600; margin-bottom: 6px; }
+    .upload-sub { font-size: 0.85rem; color: var(--white-dim); }
+
+    .access-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .access-item:last-child { border-bottom: none; }
+    .access-doctor { display: flex; align-items: center; gap: 12px; }
+    .avatar {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--teal), #0066cc);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700; color: var(--white);
+      letter-spacing: 0.5px;
+      flex-shrink: 0;
+    }
+    .access-name { font-size: 0.9rem; font-weight: 500; }
+    .access-spec { font-size: 0.78rem; color: var(--white-dim); }
+
+    /* ===== DOCTOR DASHBOARD ===== */
+    .doctor-dashboard { padding: 40px 48px; max-width: 1200px; margin: 0 auto; width: 100%; }
+    .patient-card {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 16px;
+      padding: 20px;
+      margin-bottom: 12px;
+      cursor: pointer;
+    }
+    .patient-card:hover { border-color: var(--teal); }
+    .patient-info h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 3px; }
+    .patient-info p { font-size: 0.8rem; color: var(--white-dim); }
+
+    /* ===== MEDICAL SUMMARY ===== */
+    .summary-container { padding: 40px 48px; max-width: 1100px; margin: 0 auto; width: 100%; }
+    .prescription-card { padding: 28px; margin-bottom: 16px; }
+    .rx-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+    .rx-id { font-family: var(--font-mono); font-size: 0.78rem; color: var(--teal); }
+    .rx-date { font-size: 0.78rem; color: var(--white-dim); }
+    .rx-analysis { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .rx-do, .rx-dont {
+      padding: 16px;
+      border-radius: 8px;
+    }
+    .rx-do { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); }
+    .rx-dont { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); }
+    .rx-do h5 { color: var(--green); font-size: 0.8rem; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+    .rx-dont h5 { color: var(--red); font-size: 0.8rem; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+    .rx-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .rx-list li { font-size: 0.85rem; display: flex; align-items: flex-start; gap: 8px; line-height: 1.4; }
+    .rx-do .rx-list li::before { content: '✓'; color: var(--green); font-weight: 700; flex-shrink: 0; }
+    .rx-dont .rx-list li::before { content: '✕'; color: var(--red); font-weight: 700; flex-shrink: 0; }
+
+    .blockchain-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      background: rgba(0,194,168,0.08);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--teal);
+    }
+    .chain-dot { width: 6px; height: 6px; background: var(--teal); border-radius: 50%; animation: pulse-dot 2s infinite; }
+
+    /* ===== TOAST ===== */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      z-index: 1000;
+      padding: 14px 20px;
+      background: var(--navy-mid);
+      border: 1px solid var(--teal);
+      border-radius: 10px;
+      font-size: 0.88rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    /* ===== MODAL ===== */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(6,14,28,0.85);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.2s ease;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal { padding: 32px; max-width: 540px; width: 90%; position: relative; }
+    .modal-close {
+      position: absolute;
+      top: 16px; right: 16px;
+      background: none; border: none;
+      color: var(--white-dim);
+      font-size: 1.2rem;
+      cursor: pointer;
+      width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 6px;
+      transition: var(--transition);
+    }
+    .modal-close:hover { background: var(--white-faint); color: var(--white); }
+
+    /* ===== UPLOAD PREVIEW ===== */
+    .upload-preview { text-align: center; padding: 24px; }
+    .preview-img { max-width: 100%; max-height: 220px; border-radius: 8px; margin-bottom: 16px; border: 1px solid var(--border); }
+    .analyzing { display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--teal); font-size: 0.9rem; padding: 16px; }
+    .spin { animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ===== SCROLLBAR ===== */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    @media (max-width: 900px) {
+      nav { padding: 14px 20px; }
+      .dashboard-hero { grid-template-columns: 1fr; }
+      .dashboard-grid { grid-template-columns: 1fr; }
+      .auth-container { flex-direction: column; padding: 24px; }
+      .auth-visual { max-width: 100%; }
+      .dashboard-container, .patient-dashboard, .doctor-dashboard, .summary-container { padding: 24px 20px; }
+      .rx-analysis { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-mesh"></div>
+  <div class="bg-grid"></div>
+
+  <div id="app">
+    <!-- NAV -->
+    <nav>
+      <div class="logo" onclick="showPage('dashboard')">
+        <div class="logo-dot"></div>
+        MedChain
+      </div>
+      <div class="nav-links">
+        <button class="nav-btn active" onclick="showPage('dashboard')">Dashboard</button>
+        <button class="nav-btn" onclick="showPage('patient')">Patient</button>
+        <button class="nav-btn" onclick="showPage('doctor')">Doctor</button>
+        <button class="nav-btn" onclick="showPage('summary')">Medical Summary</button>
+      </div>
+    </nav>
+
+    <!-- ============ PAGE: DASHBOARD ============ -->
+    <div id="page-dashboard" class="page active">
+      <div class="dashboard-container">
+        <div class="dashboard-hero">
+          <div class="hero-main">
+            <h1>Healthcare, <span>Secured</span><br>by Blockchain & AI</h1>
+            <p>A privacy-centric platform where patients control their data, doctors access only what's permitted, and every record is protected by distributed ledger technology.</p>
+            <div class="hero-actions">
+              <button class="btn btn-primary" onclick="showPage('patient')">🏥 Patient Login</button>
+              <button class="btn btn-outline" onclick="showPage('doctor')">👨‍⚕️ Doctor Login</button>
+            </div>
+          </div>
+          <div class="stats-grid">
+            <div class="card stat-card">
+              <div class="stat-icon">🔐</div>
+              <div class="stat-val">2,841</div>
+              <div class="stat-label">Encrypted Records</div>
+            </div>
+            <div class="card stat-card">
+              <div class="stat-icon">👥</div>
+              <div class="stat-val">412</div>
+              <div class="stat-label">Active Patients</div>
+            </div>
+            <div class="card stat-card">
+              <div class="stat-icon">🧠</div>
+              <div class="stat-val">1,108</div>
+              <div class="stat-label">AI Analyses Done</div>
+            </div>
+            <div class="card stat-card">
+              <div class="stat-icon">⛓️</div>
+              <div class="stat-val">100%</div>
+              <div class="stat-label">Blockchain Verified</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <div class="card table-wrap">
+            <div class="table-header">
+              <div class="table-title">Recent Prescriptions</div>
+              <span class="badge badge-teal">Live</span>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Patient</th>
+                  <th>Doctor</th>
+                  <th>Date</th>
+                  <th>AI Status</th>
+                  <th>Chain</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Adarsh T.</td>
+                  <td>Dr. Sharma</td>
+                  <td>Today</td>
+                  <td><span class="badge badge-green">✓ Analyzed</span></td>
+                  <td><span class="badge badge-teal">⛓ Verified</span></td>
+                </tr>
+                <tr>
+                  <td>Priya M.</td>
+                  <td>Dr. Verma</td>
+                  <td>Yesterday</td>
+                  <td><span class="badge badge-green">✓ Analyzed</span></td>
+                  <td><span class="badge badge-teal">⛓ Verified</span></td>
+                </tr>
+                <tr>
+                  <td>Rahul K.</td>
+                  <td>Dr. Gupta</td>
+                  <td>Feb 24</td>
+                  <td><span class="badge badge-amber">⏳ Pending</span></td>
+                  <td><span class="badge badge-teal">⛓ Verified</span></td>
+                </tr>
+                <tr>
+                  <td>Sneha S.</td>
+                  <td>Dr. Sharma</td>
+                  <td>Feb 23</td>
+                  <td><span class="badge badge-green">✓ Analyzed</span></td>
+                  <td><span class="badge badge-teal">⛓ Verified</span></td>
+                </tr>
+                <tr>
+                  <td>Vikram P.</td>
+                  <td>Dr. Mishra</td>
+                  <td>Feb 22</td>
+                  <td><span class="badge badge-green">✓ Analyzed</span></td>
+                  <td><span class="badge badge-teal">⛓ Verified</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card activity-list">
+            <div class="table-title" style="margin-bottom:16px; font-family: var(--font-display);">System Activity</div>
+            <div class="activity-item">
+              <div class="activity-dot green"></div>
+              <div>
+                <div class="activity-text">Patient Adarsh granted access to Dr. Sharma</div>
+                <div class="activity-time">2 min ago · Block #48291</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot teal"></div>
+              <div>
+                <div class="activity-text">New prescription uploaded & AI analyzed</div>
+                <div class="activity-time">14 min ago · Tx 0x3a1f...</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot amber"></div>
+              <div>
+                <div class="activity-text">Dr. Verma requested record access</div>
+                <div class="activity-time">1 hr ago · Pending patient approval</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot green"></div>
+              <div>
+                <div class="activity-text">Smart contract access verified on-chain</div>
+                <div class="activity-time">2 hr ago · Block #48246</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot teal"></div>
+              <div>
+                <div class="activity-text">Federated model updated with new data</div>
+                <div class="activity-time">5 hr ago · Model v2.4.1</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PAGE: PATIENT ============ -->
+    <div id="page-patient" class="page">
+      <!-- Not logged in view -->
+      <div id="patient-auth" class="auth-container">
+        <div class="auth-visual">
+          <h2>Your Health Data,<br>Your <em>Control</em></h2>
+          <p>Upload your prescriptions, get instant AI-powered advice, and decide exactly which doctors can access your records — all secured by blockchain technology.</p>
+          <div class="auth-features">
+            <div class="auth-feature">
+              <div class="auth-feature-icon">🔒</div>
+              End-to-end encrypted medical records
+            </div>
+            <div class="auth-feature">
+              <div class="auth-feature-icon">🤖</div>
+              AI prescription analysis in seconds
+            </div>
+            <div class="auth-feature">
+              <div class="auth-feature-icon">⛓️</div>
+              Blockchain-verified access control
+            </div>
+            <div class="auth-feature">
+              <div class="auth-feature-icon">👁️</div>
+              You decide who sees your data
+            </div>
+          </div>
+        </div>
+        <div class="card auth-form-card">
+          <div class="auth-tabs">
+            <div class="auth-tab active" onclick="switchTab(this, 'patient-login')">Login</div>
+            <div class="auth-tab" onclick="switchTab(this, 'patient-register')">Register</div>
+          </div>
+          <div id="patient-login">
+            <div class="form-group">
+              <label class="form-label">Patient ID / Email</label>
+              <input class="form-input" type="email" placeholder="you@email.com" id="p-email" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <input class="form-input" type="password" placeholder="••••••••" id="p-pass" />
+            </div>
+            <button class="btn btn-primary" style="width:100%; justify-content:center; padding:12px;" onclick="patientLogin()">
+              🔐 Login to Your Portal
+            </button>
+          </div>
+          <div id="patient-register" style="display:none">
+            <div class="form-group">
+              <label class="form-label">Full Name</label>
+              <input class="form-input" type="text" placeholder="Your full name" id="p-name" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input class="form-input" type="email" placeholder="you@email.com" id="p-remail" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Date of Birth</label>
+              <input class="form-input" type="date" id="p-dob" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <input class="form-input" type="password" placeholder="Create password" id="p-rpass" />
+            </div>
+            <button class="btn btn-primary" style="width:100%; justify-content:center; padding:12px;" onclick="patientRegister()">
+              ✨ Create Account
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Logged in patient portal -->
+      <div id="patient-portal" style="display:none">
+        <div class="patient-dashboard">
+          <div class="card welcome-bar">
+            <div>
+              <div class="welcome-name">Welcome back, <span id="patient-name-display">Adarsh</span> 👋</div>
+              <div class="welcome-sub">Patient ID: <span style="font-family:var(--font-mono);color:var(--teal);">PAT-2024-0847</span></div>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <div class="blockchain-badge"><div class="chain-dot"></div> Blockchain Connected</div>
+              <button class="btn btn-outline btn-sm" onclick="patientLogout()">Logout</button>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:24px;">
+            <!-- Upload Prescription -->
+            <div class="card" style="padding:24px;">
+              <div class="table-title" style="margin-bottom:16px; font-family:var(--font-display);">Upload Prescription</div>
+              <div class="upload-zone" onclick="triggerUpload()" id="upload-zone"
+                ondragover="event.preventDefault(); this.classList.add('dragover')"
+                ondragleave="this.classList.remove('dragover')"
+                ondrop="handleDrop(event)">
+                <div class="upload-icon">📋</div>
+                <div class="upload-title">Drop your prescription here</div>
+                <div class="upload-sub">or click to select an image (JPG, PNG, PDF)</div>
+              </div>
+              <input type="file" id="file-input" accept="image/*,.pdf" style="display:none" onchange="handleFileSelect(event)" />
+              <div id="upload-preview" style="display:none"></div>
+            </div>
+
+            <!-- Doctor Access Control -->
+            <div class="card" style="padding:24px;">
+              <div class="table-header" style="margin-bottom:16px;">
+                <div class="table-title" style="font-family:var(--font-display);">Doctor Access Control</div>
+                <button class="btn btn-primary btn-sm" onclick="openGrantModal()">+ Grant Access</button>
+              </div>
+              <div id="access-list">
+                <div class="access-item">
+                  <div class="access-doctor">
+                    <div class="avatar">RS</div>
+                    <div>
+                      <div class="access-name">Dr. Renu Sharma</div>
+                      <div class="access-spec">Cardiologist · DOC-0421</div>
+                    </div>
+                  </div>
+                  <div style="display:flex; gap:8px; align-items:center;">
+                    <span class="badge badge-green">Allowed</span>
+                    <button class="btn btn-danger btn-sm" onclick="revokeAccess(this, 'Dr. Renu Sharma')">Revoke</button>
+                  </div>
+                </div>
+                <div class="access-item">
+                  <div class="access-doctor">
+                    <div class="avatar" style="background: linear-gradient(135deg, #f59e0b, #d97706);">PV</div>
+                    <div>
+                      <div class="access-name">Dr. Priya Verma</div>
+                      <div class="access-spec">General Physician · DOC-0189</div>
+                    </div>
+                  </div>
+                  <div style="display:flex; gap:8px; align-items:center;">
+                    <span class="badge badge-green">Allowed</span>
+                    <button class="btn btn-danger btn-sm" onclick="revokeAccess(this, 'Dr. Priya Verma')">Revoke</button>
+                  </div>
+                </div>
+              </div>
+              <div style="margin-top:12px; font-size:0.78rem; color:var(--white-dim); display:flex; align-items:center; gap:6px;">
+                <span style="color:var(--teal);">⛓</span> All access changes are written to the blockchain
+              </div>
+            </div>
+          </div>
+
+          <!-- My Prescriptions -->
+          <div class="card" style="padding:24px;">
+            <div class="table-title" style="margin-bottom:16px; font-family:var(--font-display);">My Prescriptions</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Prescription ID</th>
+                  <th>Uploaded</th>
+                  <th>Medicines</th>
+                  <th>AI Analysis</th>
+                  <th>Blockchain Hash</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="patient-prescriptions">
+                <tr>
+                  <td><span style="font-family:var(--font-mono);font-size:0.78rem;">RX-2024-001</span></td>
+                  <td>Feb 20, 2026</td>
+                  <td>Metformin, Amlodipine</td>
+                  <td><span class="badge badge-green">✓ Done</span></td>
+                  <td><span class="blockchain-badge"><div class="chain-dot"></div>0x3a1f...b29c</span></td>
+                  <td><button class="btn btn-outline btn-sm" onclick="viewSummary()">View Summary</button></td>
+                </tr>
+                <tr>
+                  <td><span style="font-family:var(--font-mono);font-size:0.78rem;">RX-2024-002</span></td>
+                  <td>Feb 15, 2026</td>
+                  <td>Atorvastatin, Aspirin</td>
+                  <td><span class="badge badge-green">✓ Done</span></td>
+                  <td><span class="blockchain-badge"><div class="chain-dot"></div>0x7d4a...c81e</span></td>
+                  <td><button class="btn btn-outline btn-sm" onclick="viewSummary()">View Summary</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PAGE: DOCTOR ============ -->
+    <div id="page-doctor" class="page">
+      <div id="doctor-auth" class="auth-container">
+        <div class="auth-visual">
+          <h2>Doctor <em>Portal</em></h2>
+          <p>Access patient records securely — only for patients who have explicitly granted you permission. Every access is logged on the blockchain for complete transparency.</p>
+          <div class="auth-features">
+            <div class="auth-feature">
+              <div class="auth-feature-icon">✅</div>
+              Only see patient-approved records
+            </div>
+            <div class="auth-feature">
+              <div class="auth-feature-icon">🧾</div>
+              Full prescription history & AI summaries
+            </div>
+            <div class="auth-feature">
+              <div class="auth-feature-icon">⛓️</div>
+              Every access logged immutably
+            </div>
+            <div class="auth-feature">
+              <div class="auth-feature-icon">🔔</div>
+              Real-time permission updates
+            </div>
+          </div>
+        </div>
+        <div class="card auth-form-card">
+          <div class="auth-tabs">
+            <div class="auth-tab active" onclick="switchTab(this, 'doctor-login')">Login</div>
+            <div class="auth-tab" onclick="switchTab(this, 'doctor-register')">Register</div>
+          </div>
+          <div id="doctor-login">
+            <div class="form-group">
+              <label class="form-label">Doctor ID / Email</label>
+              <input class="form-input" type="email" placeholder="doctor@hospital.com" id="d-email" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Medical License No.</label>
+              <input class="form-input" type="text" placeholder="MCI-XXXXXXXX" id="d-license" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <input class="form-input" type="password" placeholder="••••••••" id="d-pass" />
+            </div>
+            <button class="btn btn-primary" style="width:100%; justify-content:center; padding:12px;" onclick="doctorLogin()">
+              🏥 Login to Doctor Portal
+            </button>
+          </div>
+          <div id="doctor-register" style="display:none">
+            <div class="form-group">
+              <label class="form-label">Full Name</label>
+              <input class="form-input" type="text" placeholder="Dr. Full Name" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Specialization</label>
+              <input class="form-input" type="text" placeholder="e.g. Cardiologist" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Hospital / Clinic</label>
+              <input class="form-input" type="text" placeholder="Hospital name" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">License Number</label>
+              <input class="form-input" type="text" placeholder="MCI-XXXXXXXX" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <input class="form-input" type="password" placeholder="Create password" />
+            </div>
+            <button class="btn btn-primary" style="width:100%; justify-content:center; padding:12px;" onclick="showToast('✓ Registration submitted for verification')">
+              ✨ Submit for Verification
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Doctor Portal (after login) -->
+      <div id="doctor-portal" style="display:none">
+        <div class="doctor-dashboard">
+          <div class="card welcome-bar" style="margin-bottom:28px;">
+            <div>
+              <div class="welcome-name">Dr. Renu Sharma's Dashboard 👨‍⚕️</div>
+              <div class="welcome-sub">Cardiologist · MCI-2019-4821 · <span style="color:var(--teal)">4 patients approved your access</span></div>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <div class="blockchain-badge"><div class="chain-dot"></div> Access Verified On-Chain</div>
+              <button class="btn btn-outline btn-sm" onclick="doctorLogout()">Logout</button>
+            </div>
+          </div>
+
+          <div class="section-title" style="margin-bottom:6px;">Approved Patients</div>
+          <div class="section-sub">These patients have granted you access to their medical records</div>
+
+          <div id="doctor-patient-list">
+            <div class="card patient-card" onclick="openPatientRecord('Adarsh Tiwari')">
+              <div class="avatar" style="width:48px;height:48px;font-size:0.85rem;">AT</div>
+              <div class="patient-info">
+                <h4>Adarsh Tiwari</h4>
+                <p>PAT-2024-0847 · Age 23 · Last visit: Feb 20 · 2 prescriptions</p>
+              </div>
+              <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+                <span class="badge badge-green">Access Granted</span>
+                <span class="blockchain-badge"><div class="chain-dot"></div>0x3a1f...b29c</span>
+              </div>
+            </div>
+            <div class="card patient-card" onclick="openPatientRecord('Sneha Sinha')">
+              <div class="avatar" style="width:48px;height:48px;font-size:0.85rem;background:linear-gradient(135deg,#f59e0b,#d97706);">SS</div>
+              <div class="patient-info">
+                <h4>Sneha Sinha</h4>
+                <p>PAT-2024-1203 · Age 28 · Last visit: Feb 23 · 4 prescriptions</p>
+              </div>
+              <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+                <span class="badge badge-green">Access Granted</span>
+                <span class="blockchain-badge"><div class="chain-dot"></div>0x7d4a...c81e</span>
+              </div>
+            </div>
+            <div class="card patient-card" onclick="openPatientRecord('Vikram Patel')">
+              <div class="avatar" style="width:48px;height:48px;font-size:0.85rem;background:linear-gradient(135deg,#6366f1,#4f46e5);">VP</div>
+              <div class="patient-info">
+                <h4>Vikram Patel</h4>
+                <p>PAT-2024-0631 · Age 45 · Last visit: Feb 22 · 1 prescription</p>
+              </div>
+              <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+                <span class="badge badge-green">Access Granted</span>
+                <span class="blockchain-badge"><div class="chain-dot"></div>0x2b9c...f41a</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PAGE: MEDICAL SUMMARY ============ -->
+    <div id="page-summary" class="page">
+      <div class="summary-container">
+        <div style="margin-bottom:32px;">
+          <div class="section-title">Medical Summary</div>
+          <div class="section-sub">AI-analyzed prescription records with blockchain-verified integrity</div>
+        </div>
+
+        <div class="prescription-card card">
+          <div class="rx-header">
+            <div>
+              <div style="font-family:var(--font-display); font-size:1.15rem; margin-bottom:4px;">Prescription RX-2024-001</div>
+              <div style="display:flex; gap:12px; align-items:center;">
+                <span class="rx-id">Patient: Adarsh Tiwari · Dr. Renu Sharma</span>
+                <div class="blockchain-badge"><div class="chain-dot"></div>0x3a1f...b29c · Verified</div>
+              </div>
+            </div>
+            <div class="rx-date">Feb 20, 2026</div>
+          </div>
+          <div style="margin-bottom:16px; padding:14px; background:var(--white-faint); border-radius:8px; font-size:0.85rem; color:var(--white-dim);">
+            <strong style="color:var(--white);">Medicines Detected:</strong> Metformin 500mg (×2/day), Amlodipine 5mg (×1/day)
+          </div>
+          <div class="rx-analysis">
+            <div class="rx-do">
+              <h5>✅ What to DO</h5>
+              <ul class="rx-list">
+                <li>Take Metformin with meals to reduce stomach upset</li>
+                <li>Take Amlodipine at the same time each day</li>
+                <li>Monitor blood sugar levels daily</li>
+                <li>Stay well-hydrated — drink 8+ glasses of water daily</li>
+                <li>Keep follow-up appointments every 4 weeks</li>
+                <li>Maintain a low-sodium, low-fat diet</li>
+              </ul>
+            </div>
+            <div class="rx-dont">
+              <h5>❌ What NOT to DO</h5>
+              <ul class="rx-list">
+                <li>Do not skip doses or double up if missed</li>
+                <li>Avoid alcohol — worsens blood sugar control</li>
+                <li>Do not take grapefruit juice with Amlodipine</li>
+                <li>Avoid NSAIDs like ibuprofen without doctor approval</li>
+                <li>Do not stop either medicine abruptly</li>
+                <li>Avoid high-sugar foods and sweetened drinks</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="prescription-card card" style="margin-top:16px;">
+          <div class="rx-header">
+            <div>
+              <div style="font-family:var(--font-display); font-size:1.15rem; margin-bottom:4px;">Prescription RX-2024-002</div>
+              <div style="display:flex; gap:12px; align-items:center;">
+                <span class="rx-id">Patient: Adarsh Tiwari · Dr. Priya Verma</span>
+                <div class="blockchain-badge"><div class="chain-dot"></div>0x7d4a...c81e · Verified</div>
+              </div>
+            </div>
+            <div class="rx-date">Feb 15, 2026</div>
+          </div>
+          <div style="margin-bottom:16px; padding:14px; background:var(--white-faint); border-radius:8px; font-size:0.85rem; color:var(--white-dim);">
+            <strong style="color:var(--white);">Medicines Detected:</strong> Atorvastatin 40mg (×1 at night), Aspirin 75mg (×1/day)
+          </div>
+          <div class="rx-analysis">
+            <div class="rx-do">
+              <h5>✅ What to DO</h5>
+              <ul class="rx-list">
+                <li>Take Atorvastatin at bedtime for best effect</li>
+                <li>Take Aspirin with food or milk</li>
+                <li>Get liver function tests every 6 months</li>
+                <li>Maintain regular low-intensity exercise</li>
+                <li>Follow a heart-healthy Mediterranean diet</li>
+              </ul>
+            </div>
+            <div class="rx-dont">
+              <h5>❌ What NOT to DO</h5>
+              <ul class="rx-list">
+                <li>Avoid grapefruit while on Atorvastatin</li>
+                <li>Do not take with antacids (reduce Aspirin absorption)</li>
+                <li>Avoid heavy alcohol consumption</li>
+                <li>Do not use other blood thinners without advice</li>
+                <li>Report any muscle pain or weakness immediately</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== GRANT ACCESS MODAL ===== -->
+  <div class="modal-overlay" id="grant-modal">
+    <div class="card modal">
+      <button class="modal-close" onclick="closeModal('grant-modal')">✕</button>
+      <div style="font-family:var(--font-display); font-size:1.4rem; margin-bottom:6px;">Grant Doctor Access</div>
+      <div style="font-size:0.85rem; color:var(--white-dim); margin-bottom:24px;">This will write a permission transaction to the blockchain</div>
+      <div class="form-group">
+        <label class="form-label">Doctor ID or License Number</label>
+        <input class="form-input" type="text" placeholder="DOC-XXXX or MCI-XXXXXXXX" id="grant-doctor-id" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Doctor Name</label>
+        <input class="form-input" type="text" placeholder="Dr. Full Name" id="grant-doctor-name" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Access Duration</label>
+        <select class="form-input" id="grant-duration" style="cursor:pointer;">
+          <option value="permanent">Permanent (revocable anytime)</option>
+          <option value="30">30 Days</option>
+          <option value="90">90 Days</option>
+          <option value="365">1 Year</option>
+        </select>
+      </div>
+      <div style="padding:12px; background:rgba(0,194,168,0.05); border:1px solid var(--border); border-radius:8px; font-size:0.8rem; color:var(--white-dim); margin-bottom:20px; display:flex; gap:8px; align-items:flex-start;">
+        <span style="color:var(--teal); font-size:1rem; flex-shrink:0;">⛓</span>
+        Granting access creates a signed transaction on the Ethereum blockchain. This action is tamper-proof and permanently auditable.
+      </div>
+      <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="grantAccess()">
+        🔓 Grant Access & Sign Transaction
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== PATIENT RECORD MODAL ===== -->
+  <div class="modal-overlay" id="record-modal">
+    <div class="card modal" style="max-width:620px;">
+      <button class="modal-close" onclick="closeModal('record-modal')">✕</button>
+      <div style="font-family:var(--font-display); font-size:1.4rem; margin-bottom:4px;" id="record-patient-name">Adarsh Tiwari</div>
+      <div style="font-size:0.8rem; color:var(--teal); margin-bottom:20px; font-family:var(--font-mono);">Access verified on blockchain · Read-only</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:20px;">
+        <div style="padding:14px; background:var(--white-faint); border-radius:8px; text-align:center;">
+          <div style="font-family:var(--font-display); font-size:1.4rem; color:var(--teal);">2</div>
+          <div style="font-size:0.75rem; color:var(--white-dim);">Prescriptions</div>
+        </div>
+        <div style="padding:14px; background:var(--white-faint); border-radius:8px; text-align:center;">
+          <div style="font-family:var(--font-display); font-size:1.4rem; color:var(--amber);">23</div>
+          <div style="font-size:0.75rem; color:var(--white-dim);">Age</div>
+        </div>
+        <div style="padding:14px; background:var(--white-faint); border-radius:8px; text-align:center;">
+          <div style="font-family:var(--font-display); font-size:1.4rem; color:var(--green);">Stable</div>
+          <div style="font-size:0.75rem; color:var(--white-dim);">Condition</div>
+        </div>
+      </div>
+      <table style="width:100%">
+        <thead>
+          <tr>
+            <th>Rx ID</th>
+            <th>Date</th>
+            <th>Medicines</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span style="font-family:var(--font-mono);font-size:0.78rem;">RX-2024-001</span></td>
+            <td>Feb 20</td>
+            <td>Metformin, Amlodipine</td>
+            <td><span class="badge badge-green">✓ AI Analyzed</span></td>
+          </tr>
+          <tr>
+            <td><span style="font-family:var(--font-mono);font-size:0.78rem;">RX-2024-002</span></td>
+            <td>Feb 15</td>
+            <td>Atorvastatin, Aspirin</td>
+            <td><span class="badge badge-green">✓ AI Analyzed</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="margin-top:16px; font-size:0.78rem; color:var(--white-dim); text-align:center; display:flex; align-items:center; justify-content:center; gap:6px;">
+        <span style="color:var(--teal);">⛓</span>
+        This access is logged on Block #48291 · Tx: 0x3a1f7b2...
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== UPLOAD ANALYSIS MODAL ===== -->
+  <div class="modal-overlay" id="upload-modal">
+    <div class="card modal">
+      <button class="modal-close" onclick="closeModal('upload-modal')">✕</button>
+      <div style="font-family:var(--font-display); font-size:1.4rem; margin-bottom:20px;" id="upload-modal-title">Analyzing Prescription...</div>
+      <div id="upload-modal-body">
+        <div class="analyzing">
+          <span class="spin" style="font-size:1.4rem;">⚙️</span>
+          AI is analyzing your prescription image...
+        </div>
+        <div style="font-size:0.8rem; color:var(--white-dim); text-align:center; margin-top:8px;">Detecting medicines, dosages, and generating recommendations</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast">
+    <span id="toast-msg">Action completed</span>
+  </div>
+
+  <script>
+    // ===== PAGE ROUTING =====
+    function showPage(name) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('page-' + name).classList.add('active');
+      const btns = document.querySelectorAll('.nav-btn');
+      const names = ['dashboard','patient','doctor','summary'];
+      btns[names.indexOf(name)].classList.add('active');
+    }
+
+    // ===== TAB SWITCHING =====
+    function switchTab(el, targetId) {
+      const parent = el.closest('.auth-form-card');
+      parent.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      const loginId = targetId.includes('patient') ? 'patient-login' : 'doctor-login';
+      const registerId = targetId.includes('patient') ? 'patient-register' : 'doctor-register';
+      document.getElementById(loginId).style.display = targetId.includes('login') ? 'block' : 'none';
+      document.getElementById(registerId).style.display = targetId.includes('register') ? 'block' : 'none';
+    }
+
+    // ===== TOAST =====
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      document.getElementById('toast-msg').textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    // ===== MODALS =====
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+    // ===== PATIENT AUTH =====
+    function patientLogin() {
+      const email = document.getElementById('p-email').value;
+      if (!email) { showToast('⚠️ Please enter your email'); return; }
+      document.getElementById('patient-auth').style.display = 'none';
+      document.getElementById('patient-portal').style.display = 'block';
+      document.getElementById('patient-name-display').textContent = email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
+      showToast('✓ Welcome back! Blockchain connection established');
+    }
+    function patientRegister() {
+      const name = document.getElementById('p-name').value;
+      if (!name) { showToast('⚠️ Please fill all fields'); return; }
+      showToast('✓ Account created! You can now login');
+    }
+    function patientLogout() {
+      document.getElementById('patient-auth').style.display = 'flex';
+      document.getElementById('patient-portal').style.display = 'none';
+      document.getElementById('p-email').value = '';
+      document.getElementById('p-pass').value = '';
+      showToast('✓ Logged out securely');
+    }
+
+    // ===== DOCTOR AUTH =====
+    function doctorLogin() {
+      const email = document.getElementById('d-email').value;
+      if (!email) { showToast('⚠️ Please enter your email'); return; }
+      document.getElementById('doctor-auth').style.display = 'none';
+      document.getElementById('doctor-portal').style.display = 'block';
+      showToast('✓ Access verified on blockchain');
+    }
+    function doctorLogout() {
+      document.getElementById('doctor-auth').style.display = 'flex';
+      document.getElementById('doctor-portal').style.display = 'none';
+      showToast('✓ Logged out securely');
+    }
+
+    // ===== ACCESS CONTROL =====
+    function openGrantModal() { openModal('grant-modal'); }
+    function grantAccess() {
+      const name = document.getElementById('grant-doctor-name').value || 'Unknown Doctor';
+      const id = document.getElementById('grant-doctor-id').value || 'DOC-0000';
+      closeModal('grant-modal');
+      const initials = name.replace('Dr. ','').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+      const list = document.getElementById('access-list');
+      const item = document.createElement('div');
+      item.className = 'access-item';
+      item.innerHTML = `
+        <div class="access-doctor">
+          <div class="avatar" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">${initials}</div>
+          <div><div class="access-name">${name}</div><div class="access-spec">${id}</div></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span class="badge badge-green">Allowed</span>
+          <button class="btn btn-danger btn-sm" onclick="revokeAccess(this,'${name}')">Revoke</button>
+        </div>`;
+      list.appendChild(item);
+      document.getElementById('grant-doctor-id').value = '';
+      document.getElementById('grant-doctor-name').value = '';
+      showToast('⛓ Access granted & written to blockchain');
+    }
+    function revokeAccess(btn, name) {
+      btn.closest('.access-item').style.opacity = '0.4';
+      btn.closest('.access-item').style.transition = '0.3s';
+      setTimeout(() => btn.closest('.access-item').remove(), 300);
+      showToast(`⛓ Access revoked for ${name} — tx signed`);
+    }
+
+    // ===== PATIENT RECORD (DOCTOR VIEW) =====
+    function openPatientRecord(name) {
+      document.getElementById('record-patient-name').textContent = name;
+      openModal('record-modal');
+    }
+
+    // ===== FILE UPLOAD =====
+    function triggerUpload() { document.getElementById('file-input').click(); }
+    function handleDrop(e) {
+      e.preventDefault();
+      document.getElementById('upload-zone').classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file) processFile(file);
+    }
+    function handleFileSelect(e) {
+      const file = e.target.files[0];
+      if (file) processFile(file);
+    }
+    function processFile(file) {
+      document.getElementById('upload-modal-title').textContent = 'Analyzing Prescription...';
+      document.getElementById('upload-modal-body').innerHTML = `
+        <div class="analyzing"><span class="spin" style="font-size:1.4rem;">⚙️</span> AI is reading your prescription image...</div>
+        <div style="font-size:0.8rem;color:var(--white-dim);text-align:center;margin-top:8px;">Identifying medicines, dosages & generating health advice</div>`;
+      openModal('upload-modal');
+
+      // Simulate AI analysis (replace with real API call in backend integration step)
+      setTimeout(() => {
+        document.getElementById('upload-modal-title').textContent = '✓ Analysis Complete';
+        document.getElementById('upload-modal-body').innerHTML = `
+          <div style="padding:14px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:8px;margin-bottom:16px;font-size:0.85rem;">
+            <strong style="color:var(--green);">Medicines Detected:</strong><br>
+            <span style="color:var(--white-dim);">Paracetamol 500mg (×3/day), Amoxicillin 250mg (×2/day), Vitamin C 1000mg (×1/day)</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+            <div style="padding:12px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:8px;">
+              <div style="color:var(--green);font-size:0.75rem;font-weight:600;text-transform:uppercase;margin-bottom:8px;">✅ What to DO</div>
+              <ul style="list-style:none;font-size:0.82rem;display:flex;flex-direction:column;gap:5px;color:var(--white-dim);">
+                <li>✓ Complete the full antibiotic course</li>
+                <li>✓ Take with food for stomach comfort</li>
+                <li>✓ Stay hydrated — 8+ glasses/day</li>
+                <li>✓ Rest adequately</li>
+              </ul>
+            </div>
+            <div style="padding:12px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;">
+              <div style="color:var(--red);font-size:0.75rem;font-weight:600;text-transform:uppercase;margin-bottom:8px;">❌ What NOT to DO</div>
+              <ul style="list-style:none;font-size:0.82rem;display:flex;flex-direction:column;gap:5px;color:var(--white-dim);">
+                <li>✕ Avoid alcohol completely</li>
+                <li>✕ Don't skip any dose</li>
+                <li>✕ No other antibiotics without advice</li>
+                <li>✕ Avoid dairy with Amoxicillin</li>
+              </ul>
+            </div>
+          </div>
+          <div style="font-size:0.78rem;color:var(--white-dim);display:flex;align-items:center;gap:6px;margin-bottom:16px;">
+            <span style="color:var(--teal);">⛓</span> Prescription hash stored on blockchain · Tx pending...
+          </div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="closeModal('upload-modal');showToast('✓ Prescription saved to your records')">
+            ✓ Save to My Records
+          </button>`;
+      }, 2500);
+    }
+
+    function viewSummary() { showPage('summary'); }
+
+    // Close modals on overlay click
+    document.querySelectorAll('.modal-overlay').forEach(el => {
+      el.addEventListener('click', (e) => {
+        if (e.target === el) el.classList.remove('open');
+      });
+    });
+  </script>
+</body>
+</html>

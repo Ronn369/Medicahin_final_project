@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MedChain — Privacy-Centric Healthcare</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #0a1628; --navy-mid: #0f2040; --navy-light: #1a3356;
+      --teal: #00c2a8; --teal-dim: #00a08a; --teal-glow: rgba(0,194,168,0.15);
+      --amber: #f59e0b; --red: #ef4444; --green: #10b981;
+      --white: #f0f4f8; --white-dim: rgba(240,244,248,0.7); --white-faint: rgba(240,244,248,0.1);
+      --card: rgba(15,32,64,0.85); --border: rgba(0,194,168,0.2);
+      --font-display: 'DM Serif Display', serif; --font-body: 'DM Sans', sans-serif; --font-mono: 'JetBrains Mono', monospace;
+      --radius: 12px; --transition: 0.25s cubic-bezier(0.4,0,0.2,1);
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font-body); background: var(--navy); color: var(--white); min-height: 100vh; overflow-x: hidden; }
+    .bg-mesh { position: fixed; inset: 0; z-index: 0; background: radial-gradient(ellipse 80% 60% at 20% 10%, rgba(0,194,168,0.08) 0%, transparent 60%), radial-gradient(ellipse 60% 80% at 80% 80%, rgba(0,100,200,0.07) 0%, transparent 60%), linear-gradient(180deg, #0a1628 0%, #060e1c 100%); pointer-events: none; }
+    .bg-grid { position: fixed; inset: 0; z-index: 0; background-image: linear-gradient(rgba(0,194,168,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,194,168,0.04) 1px, transparent 1px); background-size: 48px 48px; pointer-events: none; }
+    #app { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
+    nav { display: flex; align-items: center; justify-content: space-between; padding: 18px 48px; border-bottom: 1px solid var(--border); backdrop-filter: blur(12px); background: rgba(10,22,40,0.7); position: sticky; top: 0; z-index: 100; }
+    .logo { font-family: var(--font-display); font-size: 1.6rem; color: var(--white); letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+    .logo-dot { width: 10px; height: 10px; background: var(--teal); border-radius: 50%; animation: pulse-dot 2s infinite; }
+    @keyframes pulse-dot { 0%,100% { box-shadow: 0 0 0 0 rgba(0,194,168,0.6); } 50% { box-shadow: 0 0 0 6px rgba(0,194,168,0); } }
+    .nav-links { display: flex; gap: 8px; }
+    .nav-btn { background: none; border: none; color: var(--white-dim); font-family: var(--font-body); font-size: 0.9rem; font-weight: 500; padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: var(--transition); }
+    .nav-btn:hover, .nav-btn.active { color: var(--teal); background: var(--teal-glow); }
+    .page { display: none; flex: 1; animation: fadeIn 0.4s ease; }
+    .page.active { display: flex; flex-direction: column; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); backdrop-filter: blur(8px); transition: var(--transition); }
+    .card:hover { border-color: rgba(0,194,168,0.35); }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 8px; font-family: var(--font-body); font-weight: 500; font-size: 0.9rem; cursor: pointer; border: none; transition: var(--transition); }
+    .btn-primary { background: var(--teal); color: var(--navy); }
+    .btn-primary:hover { background: var(--teal-dim); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(0,194,168,0.3); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-outline { background: transparent; color: var(--teal); border: 1px solid var(--teal); }
+    .btn-outline:hover { background: var(--teal-glow); }
+    .btn-danger { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+    .btn-danger:hover { background: rgba(239,68,68,0.25); }
+    .btn-sm { padding: 6px 14px; font-size: 0.82rem; }
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+    .badge-green { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+    .badge-amber { background: rgba(245,158,11,0.15); color: var(--amber); border: 1px solid rgba(245,158,11,0.3); }
+    .badge-teal { background: var(--teal-glow); color: var(--teal); border: 1px solid var(--border); }
+    .badge-red { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+    .section-title { font-family: var(--font-display); font-size: 1.8rem; margin-bottom: 4px; }
+    .section-sub { color: var(--white-dim); font-size: 0.9rem; margin-bottom: 28px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+    .form-label { font-size: 0.82rem; font-weight: 500; color: var(--white-dim); letter-spacing: 0.5px; text-transform: uppercase; }
+    .form-input { background: var(--white-faint); border: 1px solid var(--border); border-radius: 8px; color: var(--white); font-family: var(--font-body); font-size: 0.92rem; padding: 11px 14px; outline: none; transition: var(--transition); }
+    .form-input:focus { border-color: var(--teal); background: rgba(0,194,168,0.05); }
+    .form-input::placeholder { color: rgba(240,244,248,0.3); }
+    .dashboard-container { padding: 40px 48px; max-width: 1400px; margin: 0 auto; width: 100%; }
+    .dashboard-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
+    .hero-main { background: linear-gradient(135deg, var(--navy-mid) 0%, rgba(0,194,168,0.1) 100%); border: 1px solid var(--border); border-radius: 16px; padding: 36px; position: relative; overflow: hidden; }
+    .hero-main::before { content: ''; position: absolute; right: -40px; top: -40px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(0,194,168,0.15) 0%, transparent 70%); border-radius: 50%; }
+    .hero-main h1 { font-family: var(--font-display); font-size: 2.2rem; line-height: 1.2; margin-bottom: 12px; }
+    .hero-main h1 span { color: var(--teal); font-style: italic; }
+    .hero-main p { color: var(--white-dim); font-size: 0.95rem; line-height: 1.6; margin-bottom: 24px; max-width: 420px; }
+    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .stat-card { padding: 24px; display: flex; flex-direction: column; gap: 8px; }
+    .stat-icon { font-size: 1.4rem; }
+    .stat-val { font-family: var(--font-display); font-size: 2rem; color: var(--teal); }
+    .stat-label { font-size: 0.82rem; color: var(--white-dim); }
+    .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
+    .table-wrap { padding: 24px; }
+    .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .table-title { font-family: var(--font-display); font-size: 1.1rem; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; font-size: 0.75rem; font-weight: 600; color: var(--white-dim); letter-spacing: 0.8px; text-transform: uppercase; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+    td { padding: 12px; font-size: 0.88rem; border-bottom: 1px solid rgba(0,194,168,0.05); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--white-faint); }
+    .activity-list { padding: 24px; }
+    .activity-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid rgba(0,194,168,0.06); }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+    .activity-dot.green { background: var(--green); } .activity-dot.teal { background: var(--teal); } .activity-dot.amber { background: var(--amber); }
+    .activity-text { font-size: 0.85rem; line-height: 1.5; }
+    .activity-time { font-size: 0.75rem; color: var(--white-dim); font-family: var(--font-mono); }
+    .auth-container { display: flex; align-items: center; justify-content: center; flex: 1; padding: 40px; gap: 60px; }
+    .auth-visual { flex: 1; max-width: 480px; display: flex; flex-direction: column; gap: 24px; }
+    .auth-visual h2 { font-family: var(--font-display); font-size: 2.4rem; line-height: 1.2; }
+    .auth-visual h2 em { color: var(--teal); font-style: italic; }
+    .auth-visual p { color: var(--white-dim); line-height: 1.7; font-size: 0.95rem; }
+    .auth-features { display: flex; flex-direction: column; gap: 14px; margin-top: 8px; }
+    .auth-feature { display: flex; align-items: center; gap: 12px; font-size: 0.88rem; color: var(--white-dim); }
+    .auth-feature-icon { width: 32px; height: 32px; background: var(--teal-glow); border: 1px solid var(--border); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .auth-form-card { padding: 36px; width: 100%; max-width: 420px; }
+    .auth-tabs { display: flex; gap: 0; margin-bottom: 28px; background: var(--white-faint); border-radius: 8px; padding: 4px; }
+    .auth-tab { flex: 1; padding: 8px; text-align: center; font-size: 0.85rem; font-weight: 500; cursor: pointer; border-radius: 6px; transition: var(--transition); color: var(--white-dim); }
+    .auth-tab.active { background: var(--teal); color: var(--navy); font-weight: 600; }
+    .patient-dashboard, .doctor-dashboard, .summary-container { padding: 40px 48px; max-width: 1200px; margin: 0 auto; width: 100%; }
+    .welcome-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; padding: 20px 28px; }
+    .welcome-name { font-family: var(--font-display); font-size: 1.4rem; }
+    .welcome-sub { font-size: 0.85rem; color: var(--white-dim); margin-top: 2px; }
+    .upload-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 48px; text-align: center; cursor: pointer; transition: var(--transition); background: rgba(0,194,168,0.02); }
+    .upload-zone:hover, .upload-zone.dragover { border-color: var(--teal); background: var(--teal-glow); }
+    .upload-icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .upload-title { font-size: 1rem; font-weight: 600; margin-bottom: 6px; }
+    .upload-sub { font-size: 0.85rem; color: var(--white-dim); }
+    .access-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--border); }
+    .access-item:last-child { border-bottom: none; }
+    .access-doctor { display: flex; align-items: center; gap: 12px; }
+    .avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--teal), #0066cc); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: var(--white); letter-spacing: 0.5px; flex-shrink: 0; }
+    .access-name { font-size: 0.9rem; font-weight: 500; }
+    .access-spec { font-size: 0.78rem; color: var(--white-dim); }
+    .patient-card { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 16px; padding: 20px; margin-bottom: 12px; cursor: pointer; }
+    .patient-info h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 3px; }
+    .patient-info p { font-size: 0.8rem; color: var(--white-dim); }
+    .prescription-card { padding: 28px; margin-bottom: 16px; }
+    .rx-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+    .rx-id { font-family: var(--font-mono); font-size: 0.78rem; color: var(--teal); }
+    .rx-date { font-size: 0.78rem; color: var(--white-dim); }
+    .rx-analysis { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .rx-do, .rx-dont { padding: 16px; border-radius: 8px; }
+    .rx-do { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); }
+    .rx-dont { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); }
+    .rx-do h5 { color: var(--green); font-size: 0.8rem; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 10px; }
+    .rx-dont h5 { color: var(--red); font-size: 0.8rem; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 10px; }
+    .rx-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .rx-list li { font-size: 0.85rem; display: flex; align-items: flex-start; gap: 8px; line-height: 1.4; }
+    .rx-do .rx-list li::before { content: '✓'; color: var(--green); font-weight: 700; flex-shrink: 0; }
+    .rx-dont .rx-list li::before { content: '✕'; color: var(--red); font-weight: 700; flex-shrink: 0; }
+    .blockchain-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(0,194,168,0.08); border: 1px solid var(--border); border-radius: 20px; font-family: var(--font-mono); font-size: 0.7rem; color: var(--teal); }
+    .chain-dot { width: 6px; height: 6px; background: var(--teal); border-radius: 50%; animation: pulse-dot 2s infinite; }
+    .toast { position: fixed; bottom: 28px; right: 28px; z-index: 1000; padding: 14px 20px; background: var(--navy-mid); border: 1px solid var(--teal); border-radius: 10px; font-size: 0.88rem; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); transform: translateY(80px); opacity: 0; transition: all 0.35s cubic-bezier(0.4,0,0.2,1); max-width: 360px; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.error { border-color: var(--red); }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(6,14,28,0.85); backdrop-filter: blur(4px); z-index: 200; display: none; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { padding: 32px; max-width: 620px; width: 90%; position: relative; max-height: 90vh; overflow-y: auto; }
+    .modal-close { position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--white-dim); font-size: 1.2rem; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: var(--transition); }
+    .modal-close:hover { background: var(--white-faint); color: var(--white); }
+    .analyzing { display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--teal); font-size: 0.9rem; padding: 24px; }
+    .spin { animation: spin 1s linear infinite; display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .error-box { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; padding: 14px; font-size: 0.85rem; color: #fca5a5; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    @media (max-width: 900px) {
+      nav { padding: 14px 20px; }
+      .dashboard-hero, .dashboard-grid { grid-template-columns: 1fr; }
+      .auth-container { flex-direction: column; padding: 24px; }
+      .auth-visual { max-width: 100%; }
+      .dashboard-container, .patient-dashboard, .doctor-dashboard, .summary-container { padding: 24px 20px; }
+      .rx-analysis { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="bg-mesh"></div>
+<div class="bg-grid"></div>
+<div id="app">
+
+  <!-- NAV -->
+  <nav>
+    <div class="logo" onclick="showPage('dashboard')"><div class="logo-dot"></div>MedChain</div>
+    <div class="nav-links">
+      <button class="nav-btn active" onclick="showPage('dashboard')">Dashboard</button>
+      <button class="nav-btn" onclick="showPage('patient')">Patient</button>
+      <button class="nav-btn" onclick="showPage('doctor')">Doctor</button>
+      <button class="nav-btn" onclick="showPage('summary')">Medical Summary</button>
+    </div>
+  </nav>
+
+  <!-- ===== DASHBOARD ===== -->
+  <div id="page-dashboard" class="page active">
+    <div class="dashboard-container">
+      <div class="dashboard-hero">
+        <div class="hero-main">
+          <h1>Healthcare, <span>Secured</span><br>by Blockchain & AI</h1>
+          <p>A privacy-centric platform where patients control their data, doctors access only what's permitted, and every record is protected by distributed ledger technology.</p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" onclick="showPage('patient')">🏥 Patient Login</button>
+            <button class="btn btn-outline" onclick="showPage('doctor')">👨‍⚕️ Doctor Login</button>
+          </div>
+        </div>
+        <div class="stats-grid">
+          <div class="card stat-card"><div class="stat-icon">🔐</div><div class="stat-val" id="stat-records">—</div><div class="stat-label">Encrypted Records</div></div>
+          <div class="card stat-card"><div class="stat-icon">👥</div><div class="stat-val" id="stat-patients">—</div><div class="stat-label">Active Patients</div></div>
+          <div class="card stat-card"><div class="stat-icon">🧠</div><div class="stat-val" id="stat-ai">—</div><div class="stat-label">AI Analyses Done</div></div>
+          <div class="card stat-card"><div class="stat-icon">⛓️</div><div class="stat-val">100%</div><div class="stat-label">Blockchain Verified</div></div>
+        </div>
+      </div>
+      <div class="dashboard-grid">
+        <div class="card table-wrap">
+          <div class="table-header"><div class="table-title">System Status</div><span class="badge badge-teal">Live</span></div>
+          <table>
+            <thead><tr><th>Service</th><th>Status</th><th>Info</th></tr></thead>
+            <tbody id="status-table">
+              <tr><td>Backend API</td><td><span class="badge badge-amber" id="backend-status">Checking...</span></td><td>http://localhost:5000</td></tr>
+              <tr><td>AI Service</td><td><span class="badge badge-amber" id="ai-status">Checking...</span></td><td>http://localhost:8000</td></tr>
+              <tr><td>MongoDB</td><td><span class="badge badge-amber" id="db-status">Checking...</span></td><td>Via backend</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card activity-list">
+          <div class="table-title" style="margin-bottom:16px;font-family:var(--font-display)">System Activity</div>
+          <div class="activity-item"><div class="activity-dot teal"></div><div><div class="activity-text">MedChain system initialized</div><div class="activity-time">Just now</div></div></div>
+          <div class="activity-item"><div class="activity-dot green"></div><div><div class="activity-text">Blockchain module ready</div><div class="activity-time">On startup</div></div></div>
+          <div class="activity-item"><div class="activity-dot amber"></div><div><div class="activity-text">AI Service connecting...</div><div class="activity-time" id="ai-time">Pending</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PATIENT PAGE ===== -->
+  <div id="page-patient" class="page">
+    <!-- AUTH -->
+    <div id="patient-auth" class="auth-container">
+      <div class="auth-visual">
+        <h2>Your Health Data,<br>Your <em>Control</em></h2>
+        <p>Upload prescriptions, get instant AI-powered advice, and decide exactly which doctors can see your records — all secured by blockchain.</p>
+        <div class="auth-features">
+          <div class="auth-feature"><div class="auth-feature-icon">🔒</div>End-to-end encrypted records</div>
+          <div class="auth-feature"><div class="auth-feature-icon">🤖</div>AI prescription analysis</div>
+          <div class="auth-feature"><div class="auth-feature-icon">⛓️</div>Blockchain access control</div>
+          <div class="auth-feature"><div class="auth-feature-icon">👁️</div>You decide who sees your data</div>
+        </div>
+      </div>
+      <div class="card auth-form-card">
+        <div class="auth-tabs">
+          <div class="auth-tab active" onclick="switchAuthTab(this,'p-login-form','p-reg-form')">Login</div>
+          <div class="auth-tab" onclick="switchAuthTab(this,'p-reg-form','p-login-form')">Register</div>
+        </div>
+        <div id="p-login-form">
+          <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="p-email" placeholder="you@email.com" /></div>
+          <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="p-pass" placeholder="••••••••" /></div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;" id="p-login-btn" onclick="patientLogin()">🔐 Login</button>
+        </div>
+        <div id="p-reg-form" style="display:none">
+          <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" type="text" id="p-name" placeholder="Your full name" /></div>
+          <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="p-remail" placeholder="you@email.com" /></div>
+          <div class="form-group"><label class="form-label">Date of Birth</label><input class="form-input" type="date" id="p-dob" /></div>
+          <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="p-rpass" placeholder="Min 6 characters" /></div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;" id="p-reg-btn" onclick="patientRegister()">✨ Create Account</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PORTAL (shown after login) -->
+    <div id="patient-portal" style="display:none">
+      <div class="patient-dashboard">
+        <div class="card welcome-bar">
+          <div>
+            <div class="welcome-name">Welcome, <span id="patient-name-display">Patient</span> 👋</div>
+            <div class="welcome-sub">Patient ID: <span style="font-family:var(--font-mono);color:var(--teal);" id="patient-id-display">—</span></div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <div class="blockchain-badge"><div class="chain-dot"></div>Blockchain Connected</div>
+            <button class="btn btn-outline btn-sm" onclick="patientLogout()">Logout</button>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
+          <!-- Upload -->
+          <div class="card" style="padding:24px;">
+            <div class="table-title" style="margin-bottom:16px;font-family:var(--font-display)">Upload Prescription</div>
+            <div class="upload-zone" id="upload-zone" onclick="triggerUpload()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDrop(event)">
+              <div class="upload-icon">📋</div>
+              <div class="upload-title">Drop your prescription here</div>
+              <div class="upload-sub">or click to select (JPG, PNG, PDF)</div>
+            </div>
+            <input type="file" id="file-input" accept="image/*,.pdf" style="display:none" onchange="handleFileSelect(event)" />
+          </div>
+          <!-- Access Control -->
+          <div class="card" style="padding:24px;">
+            <div class="table-header" style="margin-bottom:16px;">
+              <div class="table-title" style="font-family:var(--font-display)">Doctor Access</div>
+              <button class="btn btn-primary btn-sm" onclick="openModal('grant-modal')">+ Grant</button>
+            </div>
+            <div id="access-list"><div style="color:var(--white-dim);font-size:0.85rem;padding:16px 0;text-align:center;">Loading approved doctors...</div></div>
+            <div style="margin-top:12px;font-size:0.78rem;color:var(--white-dim);display:flex;align-items:center;gap:6px;"><span style="color:var(--teal)">⛓</span>Access changes are written to blockchain</div>
+          </div>
+        </div>
+        <!-- Prescriptions Table -->
+        <div class="card" style="padding:24px;">
+          <div class="table-header" style="margin-bottom:16px;">
+            <div class="table-title" style="font-family:var(--font-display)">My Prescriptions</div>
+            <button class="btn btn-outline btn-sm" onclick="loadMyPrescriptions()">↻ Refresh</button>
+          </div>
+          <div id="prescriptions-table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>Uploaded</th><th>AI Status</th><th>Blockchain</th><th>Action</th></tr></thead>
+              <tbody id="prescriptions-tbody"><tr><td colspan="5" style="text-align:center;color:var(--white-dim);padding:24px;">No prescriptions yet — upload one above</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DOCTOR PAGE ===== -->
+  <div id="page-doctor" class="page">
+    <div id="doctor-auth" class="auth-container">
+      <div class="auth-visual">
+        <h2>Doctor <em>Portal</em></h2>
+        <p>Access patient records securely — only for patients who have explicitly granted you permission. Every access is logged on blockchain.</p>
+        <div class="auth-features">
+          <div class="auth-feature"><div class="auth-feature-icon">✅</div>Only patient-approved records</div>
+          <div class="auth-feature"><div class="auth-feature-icon">🧾</div>Prescription history & AI summaries</div>
+          <div class="auth-feature"><div class="auth-feature-icon">⛓️</div>Immutable access log</div>
+          <div class="auth-feature"><div class="auth-feature-icon">🔔</div>Real-time permission updates</div>
+        </div>
+      </div>
+      <div class="card auth-form-card">
+        <div class="auth-tabs">
+          <div class="auth-tab active" onclick="switchAuthTab(this,'d-login-form','d-reg-form')">Login</div>
+          <div class="auth-tab" onclick="switchAuthTab(this,'d-reg-form','d-login-form')">Register</div>
+        </div>
+        <div id="d-login-form">
+          <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="d-email" placeholder="doctor@hospital.com" /></div>
+          <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="d-pass" placeholder="••••••••" /></div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;" id="d-login-btn" onclick="doctorLogin()">🏥 Login</button>
+        </div>
+        <div id="d-reg-form" style="display:none">
+          <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" type="text" id="d-name" placeholder="Dr. Full Name" /></div>
+          <div class="form-group"><label class="form-label">Specialization</label><input class="form-input" type="text" id="d-spec" placeholder="e.g. Cardiologist" /></div>
+          <div class="form-group"><label class="form-label">Hospital</label><input class="form-input" type="text" id="d-hospital" placeholder="Hospital / Clinic name" /></div>
+          <div class="form-group"><label class="form-label">License Number</label><input class="form-input" type="text" id="d-license" placeholder="MCI-XXXXXXXX" /></div>
+          <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="d-remail" placeholder="doctor@hospital.com" /></div>
+          <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="d-rpass" placeholder="Min 6 characters" /></div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;" id="d-reg-btn" onclick="doctorRegister()">✨ Submit for Verification</button>
+        </div>
+      </div>
+    </div>
+    <div id="doctor-portal" style="display:none">
+      <div class="doctor-dashboard">
+        <div class="card welcome-bar" style="margin-bottom:28px;">
+          <div>
+            <div class="welcome-name" id="doctor-name-display">Doctor Dashboard 👨‍⚕️</div>
+            <div class="welcome-sub" id="doctor-sub-display">Loading...</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <div class="blockchain-badge"><div class="chain-dot"></div>Access Verified On-Chain</div>
+            <button class="btn btn-outline btn-sm" onclick="doctorLogout()">Logout</button>
+          </div>
+        </div>
+        <div class="section-title" style="margin-bottom:6px;">Approved Patients</div>
+        <div class="section-sub">Patients who have granted you access to their records</div>
+        <div id="doctor-patient-list"><div style="color:var(--white-dim);font-size:0.85rem;padding:24px;text-align:center;">Loading your approved patients...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MEDICAL SUMMARY PAGE ===== -->
+  <div id="page-summary" class="page">
+    <div class="summary-container">
+      <div style="margin-bottom:32px;">
+        <div class="section-title">Medical Summary</div>
+        <div class="section-sub">AI-analyzed prescription records with blockchain-verified integrity</div>
+      </div>
+      <div id="summary-content">
+        <div style="text-align:center;padding:60px;color:var(--white-dim);">
+          <div style="font-size:2rem;margin-bottom:12px;">🏥</div>
+          Login as a patient and view a prescription to see AI analysis here.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== GRANT ACCESS MODAL ===== -->
+<div class="modal-overlay" id="grant-modal">
+  <div class="card modal">
+    <button class="modal-close" onclick="closeModal('grant-modal')">✕</button>
+    <div style="font-family:var(--font-display);font-size:1.4rem;margin-bottom:6px;">Grant Doctor Access</div>
+    <div style="font-size:0.85rem;color:var(--white-dim);margin-bottom:24px;">Enter the doctor's MongoDB ID to grant them access</div>
+    <div class="form-group"><label class="form-label">Doctor's MongoDB ID</label><input class="form-input" type="text" id="grant-doctor-id" placeholder="64abc123def456..." /></div>
+    <div class="form-group">
+      <label class="form-label">Access Duration</label>
+      <select class="form-input" id="grant-duration" style="cursor:pointer;">
+        <option value="permanent">Permanent</option>
+        <option value="30">30 Days</option>
+        <option value="90">90 Days</option>
+        <option value="365">1 Year</option>
+      </select>
+    </div>
+    <div style="padding:12px;background:rgba(0,194,168,0.05);border:1px solid var(--border);border-radius:8px;font-size:0.8rem;color:var(--white-dim);margin-bottom:20px;">
+      <span style="color:var(--teal)">⛓</span> This creates a signed blockchain transaction for tamper-proof access control.
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;" id="grant-btn" onclick="grantAccessToDoctor()">🔓 Grant Access</button>
+  </div>
+</div>
+
+<!-- ===== AI ANALYSIS MODAL ===== -->
+<div class="modal-overlay" id="analysis-modal">
+  <div class="card modal">
+    <button class="modal-close" onclick="closeModal('analysis-modal')">✕</button>
+    <div id="analysis-modal-content">
+      <div class="analyzing"><span class="spin">⚙️</span> Analyzing prescription with Claude AI...</div>
+      <div style="font-size:0.8rem;color:var(--white-dim);text-align:center;margin-top:8px;">This may take 10–30 seconds</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PATIENT RECORD MODAL (doctor view) ===== -->
+<div class="modal-overlay" id="record-modal">
+  <div class="card modal">
+    <button class="modal-close" onclick="closeModal('record-modal')">✕</button>
+    <div id="record-modal-content"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><span id="toast-msg">Done</span></div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// CONFIG — change these if your ports are different
+// ═══════════════════════════════════════════════════
+const API = 'http://localhost:5000/api';
+const AI_API = 'http://localhost:8000';
+
+// ── State ────────────────────────────────────────────
+let patientToken = null;
+let patientData = null;
+let doctorToken = null;
+let doctorData = null;
+
+// ── Helpers ──────────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  ['dashboard','patient','doctor','summary'].forEach((n,i) => {
+    if(n === name) document.querySelectorAll('.nav-btn')[i].classList.add('active');
+  });
+}
+
+function switchAuthTab(el, showId, hideId) {
+  el.closest('.auth-form-card').querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById(showId).style.display = 'block';
+  document.getElementById(hideId).style.display = 'none';
+}
+
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.className = 'toast' + (isError ? ' error' : '');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function setLoading(btnId, loading, text) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.disabled = loading;
+  btn.textContent = loading ? '⏳ Please wait...' : text;
+}
+
+function formatDate(iso) {
+  return new Date(iso).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+async function apiCall(endpoint, options = {}) {
+  const res = await fetch(API + endpoint, {
+    headers: { 'Content-Type': 'application/json', ...options.headers },
+    ...options,
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message || 'Request failed');
+  return data;
+}
+
+async function authCall(endpoint, body, token) {
+  const res = await fetch(API + endpoint, {
+    method: 'GET',
+    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+    ...(body ? { method: 'POST', body: JSON.stringify(body) } : {}),
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message || 'Request failed');
+  return data;
+}
+
+// ═══════════════════════════════════════════════════
+// HEALTH CHECKS
+// ═══════════════════════════════════════════════════
+async function checkServices() {
+  // Backend
+  try {
+    const res = await fetch(`${API}/health`, { signal: AbortSignal.timeout(5000) });
+    const data = await res.json();
+    const el = document.getElementById('backend-status');
+    el.textContent = '✓ Online';
+    el.className = 'badge badge-green';
+    document.getElementById('db-status').textContent = '✓ Connected';
+    document.getElementById('db-status').className = 'badge badge-green';
+    document.getElementById('stat-records').textContent = '—';
+    document.getElementById('stat-patients').textContent = '—';
+  } catch {
+    const el = document.getElementById('backend-status');
+    el.textContent = '✗ Offline';
+    el.className = 'badge badge-red';
+    document.getElementById('db-status').textContent = '✗ Unknown';
+    document.getElementById('db-status').className = 'badge badge-red';
+  }
+
+  // AI Service
+  try {
+    const res = await fetch(`${AI_API}/health`, { signal: AbortSignal.timeout(5000) });
+    const data = await res.json();
+    const el = document.getElementById('ai-status');
+    const keyOk = data.anthropic_key_configured;
+    el.textContent = keyOk ? '✓ Online + Key Set' : '⚠ Online (No API Key)';
+    el.className = keyOk ? 'badge badge-green' : 'badge badge-amber';
+    document.getElementById('ai-time').textContent = 'Connected';
+    document.getElementById('stat-ai').textContent = '✓';
+  } catch {
+    const el = document.getElementById('ai-status');
+    el.textContent = '✗ Offline';
+    el.className = 'badge badge-red';
+    document.getElementById('ai-time').textContent = 'Not reachable';
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// PATIENT AUTH
+// ═══════════════════════════════════════════════════
+async function patientLogin() {
+  const email = document.getElementById('p-email').value.trim();
+  const password = document.getElementById('p-pass').value;
+  if (!email || !password) { showToast('Please enter email and password', true); return; }
+
+  setLoading('p-login-btn', true, '🔐 Login');
+  try {
+    const data = await apiCall('/auth/patient/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+    patientToken = data.token;
+    patientData = data.patient;
+    showPatientPortal();
+    showToast('✓ Welcome back, ' + patientData.fullName.split(' ')[0] + '!');
+  } catch (err) {
+    showToast('Login failed: ' + err.message, true);
+  } finally {
+    setLoading('p-login-btn', false, '🔐 Login');
+  }
+}
+
+async function patientRegister() {
+  const fullName = document.getElementById('p-name').value.trim();
+  const email = document.getElementById('p-remail').value.trim();
+  const dateOfBirth = document.getElementById('p-dob').value;
+  const password = document.getElementById('p-rpass').value;
+
+  if (!fullName || !email || !password) { showToast('Please fill all required fields', true); return; }
+  if (password.length < 6) { showToast('Password must be at least 6 characters', true); return; }
+
+  setLoading('p-reg-btn', true, '✨ Create Account');
+  try {
+    const data = await apiCall('/auth/patient/register', {
+      method: 'POST',
+      body: JSON.stringify({ fullName, email, password, dateOfBirth }),
+    });
+    patientToken = data.token;
+    patientData = data.patient;
+    showPatientPortal();
+    showToast('✓ Account created! Welcome, ' + patientData.fullName.split(' ')[0] + '!');
+  } catch (err) {
+    showToast('Registration failed: ' + err.message, true);
+  } finally {
+    setLoading('p-reg-btn', false, '✨ Create Account');
+  }
+}
+
+function showPatientPortal() {
+  document.getElementById('patient-auth').style.display = 'none';
+  document.getElementById('patient-portal').style.display = 'block';
+  document.getElementById('patient-name-display').textContent = patientData.fullName;
+  document.getElementById('patient-id-display').textContent = patientData.patientId;
+  loadMyDoctors();
+  loadMyPrescriptions();
+}
+
+function patientLogout() {
+  patientToken = null; patientData = null;
+  document.getElementById('patient-auth').style.display = 'flex';
+  document.getElementById('patient-portal').style.display = 'none';
+  document.getElementById('p-email').value = '';
+  document.getElementById('p-pass').value = '';
+  showToast('✓ Logged out securely');
+}
+
+// ═══════════════════════════════════════════════════
+// DOCTOR AUTH
+// ═══════════════════════════════════════════════════
+async function doctorLogin() {
+  const email = document.getElementById('d-email').value.trim();
+  const password = document.getElementById('d-pass').value;
+  if (!email || !password) { showToast('Please enter email and password', true); return; }
+
+  setLoading('d-login-btn', true, '🏥 Login');
+  try {
+    const data = await apiCall('/auth/doctor/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+    doctorToken = data.token;
+    doctorData = data.doctor;
+    showDoctorPortal();
+    showToast('✓ Welcome, ' + doctorData.fullName + '!');
+  } catch (err) {
+    showToast('Login failed: ' + err.message, true);
+  } finally {
+    setLoading('d-login-btn', false, '🏥 Login');
+  }
+}
+
+async function doctorRegister() {
+  const body = {
+    fullName: document.getElementById('d-name').value.trim(),
+    specialization: document.getElementById('d-spec').value.trim(),
+    hospital: document.getElementById('d-hospital').value.trim(),
+    licenseNumber: document.getElementById('d-license').value.trim(),
+    email: document.getElementById('d-remail').value.trim(),
+    password: document.getElementById('d-rpass').value,
+  };
+  if (!body.fullName || !body.email || !body.password || !body.licenseNumber) {
+    showToast('Please fill all required fields', true); return;
+  }
+  setLoading('d-reg-btn', true, '✨ Submit');
+  try {
+    await apiCall('/auth/doctor/register', { method: 'POST', body: JSON.stringify(body) });
+    showToast('✓ Registration submitted! Admin will verify your account.');
+    switchAuthTab(document.querySelector('#page-doctor .auth-tab'), 'd-login-form', 'd-reg-form');
+  } catch (err) {
+    showToast('Registration failed: ' + err.message, true);
+  } finally {
+    setLoading('d-reg-btn', false, '✨ Submit');
+  }
+}
+
+function showDoctorPortal() {
+  document.getElementById('doctor-auth').style.display = 'none';
+  document.getElementById('doctor-portal').style.display = 'block';
+  document.getElementById('doctor-name-display').textContent = `${doctorData.fullName}'s Dashboard 👨‍⚕️`;
+  document.getElementById('doctor-sub-display').textContent =
+    `${doctorData.specialization} · ${doctorData.licenseNumber} · ${doctorData.isVerified ? 'Verified ✓' : 'Verification Pending'}`;
+  loadMyPatients();
+}
+
+function doctorLogout() {
+  doctorToken = null; doctorData = null;
+  document.getElementById('doctor-auth').style.display = 'flex';
+  document.getElementById('doctor-portal').style.display = 'none';
+  showToast('✓ Logged out securely');
+}
+
+// ═══════════════════════════════════════════════════
+// ACCESS CONTROL
+// ═══════════════════════════════════════════════════
+async function loadMyDoctors() {
+  const list = document.getElementById('access-list');
+  try {
+    const res = await fetch(`${API}/access/my-doctors`, {
+      headers: { 'Authorization': `Bearer ${patientToken}` }
+    });
+    const data = await res.json();
+    if (!data.doctors || data.doctors.length === 0) {
+      list.innerHTML = `<div style="color:var(--white-dim);font-size:0.85rem;padding:16px 0;text-align:center;">No approved doctors yet. Click "+ Grant" to add one.</div>`;
+      return;
+    }
+    list.innerHTML = data.doctors.map(d => {
+      const doc = d.doctorId || {};
+      const name = doc.fullName || d.doctorName || 'Unknown Doctor';
+      const spec = doc.specialization || d.specialization || '';
+      const initials = name.replace('Dr. ','').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+      return `<div class="access-item">
+        <div class="access-doctor">
+          <div class="avatar">${initials}</div>
+          <div><div class="access-name">${name}</div><div class="access-spec">${spec} · ${doc.doctorId || ''}</div></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span class="badge badge-green">Allowed</span>
+          <button class="btn btn-danger btn-sm" onclick="revokeDoctor('${doc._id || d.doctorId}','${name}')">Revoke</button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch (err) {
+    list.innerHTML = `<div class="error-box">Could not load doctors: ${err.message}</div>`;
+  }
+}
+
+async function grantAccessToDoctor() {
+  const doctorId = document.getElementById('grant-doctor-id').value.trim();
+  const duration = document.getElementById('grant-duration').value;
+  if (!doctorId) { showToast('Please enter a Doctor ID', true); return; }
+
+  setLoading('grant-btn', true, '🔓 Grant Access');
+  try {
+    const res = await fetch(`${API}/access/grant`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${patientToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ doctorId, duration }),
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message);
+    closeModal('grant-modal');
+    document.getElementById('grant-doctor-id').value = '';
+    await loadMyDoctors();
+    showToast(`⛓ Access granted to ${data.data.doctorName} — written to blockchain`);
+  } catch (err) {
+    showToast('Failed: ' + err.message, true);
+  } finally {
+    setLoading('grant-btn', false, '🔓 Grant Access');
+  }
+}
+
+async function revokeDoctor(doctorId, name) {
+  if (!confirm(`Revoke access for ${name}?`)) return;
+  try {
+    const res = await fetch(`${API}/access/revoke`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${patientToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ doctorId }),
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message);
+    await loadMyDoctors();
+    showToast(`⛓ Access revoked for ${name} — tx signed`);
+  } catch (err) {
+    showToast('Failed: ' + err.message, true);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// PRESCRIPTION UPLOAD + AI ANALYSIS
+// ═══════════════════════════════════════════════════
+function triggerUpload() { document.getElementById('file-input').click(); }
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.remove('dragover');
+  if (e.dataTransfer.files[0]) uploadPrescription(e.dataTransfer.files[0]);
+}
+function handleFileSelect(e) { if (e.target.files[0]) uploadPrescription(e.target.files[0]); }
+
+async function uploadPrescription(file) {
+  const allowed = ['image/jpeg','image/jpg','image/png','application/pdf'];
+  if (!allowed.includes(file.type)) {
+    showToast('Only JPG, PNG, or PDF files allowed', true); return;
+  }
+
+  // Show analyzing modal
+  document.getElementById('analysis-modal-content').innerHTML = `
+    <div style="font-family:var(--font-display);font-size:1.4rem;margin-bottom:20px;">Uploading & Analyzing...</div>
+    <div class="analyzing"><span class="spin">⚙️</span> Uploading to server...</div>
+    <div style="font-size:0.8rem;color:var(--white-dim);text-align:center;margin-top:8px;">AI is reading your prescription — may take 15–30 seconds</div>`;
+  openModal('analysis-modal');
+
+  try {
+    // Step 1: Upload to backend
+    const formData = new FormData();
+    formData.append('prescription', file);
+
+    const uploadRes = await fetch(`${API}/prescriptions/upload`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${patientToken}` },
+      body: formData,
+    });
+    const uploadData = await uploadRes.json();
+    if (!uploadData.success) throw new Error(uploadData.message);
+
+    const prescriptionId = uploadData.prescription.id;
+    document.querySelector('#analysis-modal-content .analyzing').innerHTML =
+      `<span class="spin">🤖</span> Claude AI analyzing prescription...`;
+
+    // Step 2: Poll for AI result (every 3s, up to 60s)
+    const result = await pollAnalysisStatus(prescriptionId);
+    showAnalysisResult(result, uploadData.prescription);
+
+  } catch (err) {
+    document.getElementById('analysis-modal-content').innerHTML = `
+      <div style="font-family:var(--font-display);font-size:1.4rem;margin-bottom:16px;">Upload Failed</div>
+      <div class="error-box">${err.message}</div>
+      <button class="btn btn-outline" style="margin-top:16px;" onclick="closeModal('analysis-modal')">Close</button>`;
+    showToast('Upload failed: ' + err.message, true);
+  }
+}
+
+async function pollAnalysisStatus(prescriptionId, attempts = 0) {
+  if (attempts > 20) throw new Error('AI analysis timed out — check status later');
+
+  await new Promise(r => setTimeout(r, 3000)); // wait 3s
+
+  const res = await fetch(`${API}/prescriptions/${prescriptionId}/status`, {
+    headers: { 'Authorization': `Bearer ${patientToken}` }
+  });
+  const data = await res.json();
+
+  if (data.aiStatus === 'completed') return data.aiAnalysis;
+  if (data.aiStatus === 'failed') throw new Error('AI analysis failed — please try again');
+
+  return pollAnalysisStatus(prescriptionId, attempts + 1);
+}
+
+function showAnalysisResult(analysis, prescriptionMeta) {
+  const medicines = analysis.medicines || [];
+  const recs = analysis.recommendations || [];
+  const warns = analysis.warnings || [];
+
+  document.getElementById('analysis-modal-content').innerHTML = `
+    <div style="font-family:var(--font-display);font-size:1.4rem;margin-bottom:4px;">✅ Analysis Complete!</div>
+    <div class="blockchain-badge" style="margin-bottom:20px;"><div class="chain-dot"></div>${prescriptionMeta.fileHash?.slice(0,10)}... · Stored on chain</div>
+
+    ${medicines.length > 0 ? `
+    <div style="margin-bottom:16px;padding:14px;background:var(--white-faint);border-radius:8px;">
+      <div style="font-size:0.75rem;text-transform:uppercase;color:var(--teal);font-weight:600;margin-bottom:8px;">💊 Medicines Detected</div>
+      ${medicines.map(m => `<div style="font-size:0.85rem;margin-bottom:4px;"><strong>${m.name}</strong> ${m.dosage ? '— '+m.dosage : ''} ${m.frequency ? '· '+m.frequency : ''}</div>`).join('')}
+    </div>` : ''}
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div class="rx-do">
+        <h5>✅ What to DO</h5>
+        <ul class="rx-list">${recs.map(r=>`<li>${r}</li>`).join('')}</ul>
+      </div>
+      <div class="rx-dont">
+        <h5>❌ What NOT to DO</h5>
+        <ul class="rx-list">${warns.map(w=>`<li>${w}</li>`).join('')}</ul>
+      </div>
+    </div>
+    <div style="font-size:0.75rem;color:var(--white-dim);margin-bottom:16px;padding:10px;background:rgba(245,158,11,0.08);border-radius:6px;border:1px solid rgba(245,158,11,0.2);">
+      ⚠️ ${analysis.notes || 'AI-generated guidance. Always consult your prescribing doctor.'}
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-primary" style="flex:1;justify-content:center;" onclick="closeModal('analysis-modal');loadMyPrescriptions();showFullSummary(${JSON.stringify(analysis).replace(/"/g,'&quot;')})">View Full Summary</button>
+      <button class="btn btn-outline" onclick="closeModal('analysis-modal');loadMyPrescriptions()">Close</button>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════
+// LOAD PRESCRIPTIONS TABLE
+// ═══════════════════════════════════════════════════
+async function loadMyPrescriptions() {
+  const tbody = document.getElementById('prescriptions-tbody');
+  try {
+    const res = await fetch(`${API}/prescriptions/my`, {
+      headers: { 'Authorization': `Bearer ${patientToken}` }
+    });
+    const data = await res.json();
+    if (!data.prescriptions || data.prescriptions.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--white-dim);padding:24px;">No prescriptions yet — upload one above</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.prescriptions.map(p => `
+      <tr>
+        <td><span style="font-family:var(--font-mono);font-size:0.78rem;">${p.prescriptionId}</span></td>
+        <td>${formatDate(p.createdAt)}</td>
+        <td>${p.aiAnalysis?.status === 'completed'
+          ? '<span class="badge badge-green">✓ Analyzed</span>'
+          : p.aiAnalysis?.status === 'failed'
+          ? '<span class="badge badge-red">✗ Failed</span>'
+          : '<span class="badge badge-amber">⏳ Processing</span>'}</td>
+        <td>${p.blockchain?.fileHash
+          ? `<span class="blockchain-badge"><div class="chain-dot"></div>${p.blockchain.fileHash.slice(0,8)}...</span>`
+          : '—'}</td>
+        <td><button class="btn btn-outline btn-sm" onclick="viewPrescriptionSummary('${p._id}')">View</button></td>
+      </tr>`).join('');
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="5" class="error-box">Error: ${err.message}</td></tr>`;
+  }
+}
+
+async function viewPrescriptionSummary(id) {
+  try {
+    const res = await fetch(`${API}/prescriptions/${id}`, {
+      headers: { 'Authorization': `Bearer ${patientToken || doctorToken}` }
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message);
+    const p = data.prescription;
+    if (p.aiAnalysis?.status === 'completed') {
+      showFullSummary(p.aiAnalysis, p);
+    } else {
+      showToast('AI analysis not yet complete for this prescription', true);
+    }
+  } catch (err) {
+    showToast('Error: ' + err.message, true);
+  }
+}
+
+function showFullSummary(analysis, meta) {
+  const medicines = analysis.medicines || [];
+  const recs = analysis.recommendations || [];
+  const warns = analysis.warnings || [];
+
+  document.getElementById('summary-content').innerHTML = `
+    <div class="prescription-card card">
+      <div class="rx-header">
+        <div>
+          <div style="font-family:var(--font-display);font-size:1.15rem;margin-bottom:4px;">
+            ${meta?.prescriptionId || 'Prescription Analysis'}
+          </div>
+          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+            ${meta?.blockchain?.fileHash ? `<div class="blockchain-badge"><div class="chain-dot"></div>${meta.blockchain.fileHash.slice(0,12)}... · Verified</div>` : ''}
+            ${analysis.confidence ? `<span class="badge badge-${analysis.confidence === 'high' ? 'green' : 'amber'}">Confidence: ${analysis.confidence}</span>` : ''}
+          </div>
+        </div>
+        <div class="rx-date">${meta?.createdAt ? formatDate(meta.createdAt) : ''}</div>
+      </div>
+
+      ${medicines.length > 0 ? `
+      <div style="margin-bottom:16px;padding:14px;background:var(--white-faint);border-radius:8px;">
+        <strong style="font-size:0.8rem;text-transform:uppercase;color:var(--teal);letter-spacing:0.5px;">💊 Medicines Detected</strong>
+        <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;">
+          ${medicines.map(m=>`<div style="padding:6px 12px;background:var(--white-faint);border:1px solid var(--border);border-radius:8px;font-size:0.82rem;">
+            <strong>${m.name}</strong>${m.dosage?' · '+m.dosage:''}${m.frequency?' · '+m.frequency:''}${m.duration?' · '+m.duration:''}
+          </div>`).join('')}
+        </div>
+      </div>` : ''}
+
+      <div class="rx-analysis">
+        <div class="rx-do">
+          <h5>✅ What to DO</h5>
+          <ul class="rx-list">${recs.map(r=>`<li>${r}</li>`).join('') || '<li>Follow doctor\'s instructions</li>'}</ul>
+        </div>
+        <div class="rx-dont">
+          <h5>❌ What NOT to DO</h5>
+          <ul class="rx-list">${warns.map(w=>`<li>${w}</li>`).join('') || '<li>Do not self-medicate</li>'}</ul>
+        </div>
+      </div>
+
+      ${analysis.diet_advice?.length ? `
+      <div style="margin-top:16px;padding:14px;background:rgba(245,158,11,0.05);border:1px solid rgba(245,158,11,0.2);border-radius:8px;">
+        <div style="font-size:0.75rem;text-transform:uppercase;color:var(--amber);font-weight:600;margin-bottom:8px;">🥗 Diet Advice</div>
+        <ul class="rx-list">${analysis.diet_advice.map(d=>`<li style="color:var(--white-dim)">${d}</li>`).join('')}</ul>
+      </div>` : ''}
+
+      <div style="margin-top:16px;padding:12px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;font-size:0.78rem;color:var(--white-dim);">
+        ⚠️ ${analysis.notes || 'This AI analysis is for informational purposes only. Always follow your doctor\'s specific instructions.'}
+      </div>
+    </div>`;
+
+  showPage('summary');
+}
+
+// ═══════════════════════════════════════════════════
+// DOCTOR: LOAD PATIENTS
+// ═══════════════════════════════════════════════════
+async function loadMyPatients() {
+  const list = document.getElementById('doctor-patient-list');
+  try {
+    const res = await fetch(`${API}/access/my-patients`, {
+      headers: { 'Authorization': `Bearer ${doctorToken}` }
+    });
+    const data = await res.json();
+    if (!data.patients || data.patients.length === 0) {
+      list.innerHTML = `<div style="color:var(--white-dim);padding:40px;text-align:center;">No patients have approved your access yet. Share your Doctor ID (<strong style="color:var(--teal)">${doctorData._id}</strong>) with patients.</div>`;
+      return;
+    }
+    list.innerHTML = data.patients.map(p => {
+      const pt = p.patientId || {};
+      const name = pt.fullName || p.patientName || 'Unknown';
+      const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+      return `<div class="card patient-card" onclick="viewPatientRecords('${pt._id || ''}', '${name}')">
+        <div class="avatar" style="width:48px;height:48px;font-size:0.85rem;">${initials}</div>
+        <div class="patient-info">
+          <h4>${name}</h4>
+          <p>${pt.patientId || ''} · Approved ${new Date(p.grantedAt).toLocaleDateString()}</p>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+          <span class="badge badge-green">Access Granted</span>
+          <span style="font-size:0.75rem;color:var(--teal);">Click to view records →</span>
+        </div>
+      </div>`;
+    }).join('');
+  } catch (err) {
+    list.innerHTML = `<div class="error-box">Error: ${err.message}</div>`;
+  }
+}
+
+async function viewPatientRecords(patientId, patientName) {
+  if (!patientId) { showToast('Invalid patient ID', true); return; }
+  try {
+    const res = await fetch(`${API}/prescriptions/patient/${patientId}`, {
+      headers: { 'Authorization': `Bearer ${doctorToken}` }
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message);
+
+    const modal = document.getElementById('record-modal-content');
+    modal.innerHTML = `
+      <div style="font-family:var(--font-display);font-size:1.4rem;margin-bottom:4px;">${patientName}</div>
+      <div style="font-size:0.8rem;color:var(--teal);margin-bottom:20px;font-family:var(--font-mono);">Access verified on blockchain · Read-only</div>
+      ${data.prescriptions.length === 0
+        ? '<div style="color:var(--white-dim);padding:20px;text-align:center;">No prescriptions found</div>'
+        : `<table style="width:100%">
+          <thead><tr><th>Rx ID</th><th>Date</th><th>AI Status</th><th>Action</th></tr></thead>
+          <tbody>${data.prescriptions.map(p=>`
+            <tr>
+              <td><span style="font-family:var(--font-mono);font-size:0.78rem;">${p.prescriptionId}</span></td>
+              <td>${formatDate(p.createdAt)}</td>
+              <td>${p.aiAnalysis?.status === 'completed' ? '<span class="badge badge-green">✓ Done</span>' : '<span class="badge badge-amber">Pending</span>'}</td>
+              <td><button class="btn btn-outline btn-sm" onclick="viewPrescriptionSummary('${p._id}')">View Summary</button></td>
+            </tr>`).join('')}
+          </tbody>
+        </table>`}`;
+    openModal('record-modal');
+  } catch (err) {
+    showToast('Error: ' + err.message, true);
+  }
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+// ── Init ────────────────────────────────────────────
+checkServices();
+setInterval(checkServices, 30000); // re-check every 30s
+</script>
+</body>
+</html>
